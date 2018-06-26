@@ -1,0 +1,15 @@
+.cell {
+  width: 30px;
+  height: 30px;
+  background-color: grey ;
+  display: inline-block;
+  &.isMine {
+    background-color: rebeccapurple;
+    &.isRevealed {
+      background-color: indianred;
+    }
+  }
+  &.isRevealed {
+    background-color:green;
+  }
+}
