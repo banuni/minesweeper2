@@ -2,6 +2,7 @@ import 'jsdom-global/register';
 import * as React from 'react';
 import {expect} from 'chai';
 import {mount} from 'enzyme';
+import * as sinon from 'sinon';
 
 import Board from './Board';
 import {createBoard} from '../../boardUtils';
@@ -13,21 +14,22 @@ const getMinedBoard = (mines: Point[]) => {
     return getCustomBoard({rows: 3, cols: 3, mines});
 };
 
-function getCustomBoard(parameters: { rows: number, cols: number, mines: Point[], results?: any, active?: boolean}) {
-    let {rows, cols, mines, results, active = true} = parameters;
+const emptyFunction = () => {/**/};
+function getCustomBoard(parameters: { rows: number, cols: number, mines: Point[], onWin?: Function, onLose?: Function, active?: boolean}) {
+    let {rows, cols, mines, onLose, onWin, active = true} = parameters;
     const board = createBoard(rows, cols, mines);
     return (
         <Board
             initialBoard={board}
-            onWin={() => {if (results) {results.didWin = true; }}}
-            onLose={() => {if (results) {results.didLose = true; }}}
+            onWin={onWin || emptyFunction}
+            onLose={onLose || emptyFunction}
             active={active}
         />
     );
 }
 
-const getTestBoard = (rows: number, cols: number, results: any = {}) => {
-    return getCustomBoard({rows, cols, mines: [{x: 0, y: 0}], results});
+const getTestBoard = (rows: number, cols: number, onWin?: Function, onLose?: Function) => {
+    return getCustomBoard({rows, cols, mines: [{x: 0, y: 0}], onWin, onLose});
 };
 
 function mountAndAttach(component) {
@@ -45,23 +47,25 @@ describe('Board', () => {
         expect(wrapper.find('[data-hook="cell"]').length).to.eq(16);
     });
     it( 'should run onLose on mine click', () => {
-        const result = {didWin: false, didLose: false};
-        wrapper = mountAndAttach(getTestBoard(4, 4, result));
+        const winSpy = sinon.spy();
+        const loseSpy = sinon.spy();
+        wrapper = mountAndAttach(getTestBoard(4, 4, winSpy, loseSpy));
         const mine = wrapper.find('[data-hook="cell"]').at(0);
         mine.simulate('click');
         expect(mine.hasClass('isRevealed'), 'Mine should be revealed').to.be.true;
-        expect(result.didLose, 'should run didLose').to.be.true;
-        expect(result.didWin, 'should not run didWin').to.be.false;
+        expect(loseSpy, 'should run didLose').to.be.called;
+        expect(winSpy, 'should not run didWin').to.not.be.called;
     });
     it( 'should run onWin on all non-mine clicks', () => {
-        const result = {didWin: false, didLose: false};
-        wrapper = mountAndAttach(getTestBoard(4, 4, result));
+        const winSpy = sinon.spy();
+        const loseSpy = sinon.spy();
+        wrapper = mountAndAttach(getTestBoard(4, 4, winSpy, loseSpy));
         const cells = wrapper.find('[data-hook="cell"]');
         cells.slice(1).forEach((cellWrapper) => {
                 cellWrapper.simulate('click');
         });
-        expect(result.didLose).to.be.false;
-        expect(result.didWin).to.be.true;
+        expect(loseSpy, 'should not run didLose').to.not.be.called;
+        expect(winSpy, 'should run didWin').to.be.called;
     });
     it('a click reveals a cell', () => {
         wrapper = mountAndAttach(getTestBoard(4, 4));

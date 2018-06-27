@@ -18,13 +18,13 @@ export function createBoard(rows: number, cols: number, mines?: Array<Point>) {
 
 const aPoint = (x, y) => ({x, y});
 const pointsEqual = (p1: Point, p2: Point): boolean => p1.x === p2.x && p1.y === p2.y;
-const isInBoardBoundaries = board => ({x, y}) => {
+const isInBoardBoundaries = (board: BoardType) => ({x, y}: Point) => {
     return x >= 0 && y >= 0 && x < board.length && y < board[0].length;
 };
 
 function getAdjPoints(board: BoardType, point: Point) {
     const {x, y} = point;
-    const candidates = [
+    const candidates: Point[] = [
         aPoint(x - 1, y - 1),
         aPoint(x - 1, y    ),
         aPoint(x - 1, y + 1),
@@ -38,9 +38,9 @@ function getAdjPoints(board: BoardType, point: Point) {
 }
 
 export function revealCell (board: BoardType, {x, y}: Point) {
-    //assumes cell is not mine
+    // assumes cell is not mine
     const cell = board[x][y];
-    if (cell.isRevealed) {
+    if (cell.isRevealed || cell.isMine) {
         return;
     }
     cell.isRevealed = true;

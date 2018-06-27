@@ -26,6 +26,10 @@ export default class Board extends React.Component<{initialBoard: BoardType, onW
 
     onCellClick(point) {
         const {board} = this.state;
+        const {active} = this.props;
+        if (!active) {
+            return;
+        }
         const cell = board[point.x][point.y];
         if (cell.isMine) {
             this.props.onLose();
@@ -38,8 +42,6 @@ export default class Board extends React.Component<{initialBoard: BoardType, onW
 
     render() {
         const {board} = this.state;
-        const {active = true} = this.props;
-        const onCellClick = active ? this.onCellClick : () => {/**/};
         return <div>
             {board.map((row, x) =>
                 <div key={x} className="row">
@@ -50,7 +52,7 @@ export default class Board extends React.Component<{initialBoard: BoardType, onW
                             isMine={cell.isMine}
                             isRevealed={cell.isRevealed}
                             value={cell.value}
-                            onClick={onCellClick}
+                            onClick={this.onCellClick}
                         />
                     ))}
                 </div>
